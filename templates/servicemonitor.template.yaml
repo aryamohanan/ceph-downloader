@@ -1,0 +1,12 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    team: cmp
+  name: {{ .Values.app.name }}-sm-{{ .Values.environment }}
+spec:
+  endpoints:
+  - port: http
+  selector:
+    matchLabels:
+      monitoring: {{ .Values.app.name }}-sm-{{ .Values.environment }}

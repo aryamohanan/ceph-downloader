@@ -1,0 +1,202 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.deployment.name }}
+  namespace: {{ .Values.app.namespace }}
+  labels:
+    app: {{ .Values.app.name }}
+    version: {{ .Values.image.tag }}
+    environment: {{ .Values.environment }}
+    AccountableTeam: Provisioning
+    tags.datadoghq.com/env: {{ .Values.environment }}
+    tags.datadoghq.com/service:  {{ .Values.app.name }}
+    tags.datadoghq.com/version: {{ .Values.image.tag }}
+
+spec:
+  replicas: 3
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.app.name }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 33%
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.name }}
+        version: {{ .Values.image.tag }}
+        environment: {{ .Values.environment }}
+        AccountableTeam: Provisioning
+        tags.datadoghq.com/env: {{ .Values.environment }}
+        tags.datadoghq.com/service:  {{ .Values.app.name }}
+        tags.datadoghq.com/version: {{ .Values.image.tag }}
+    spec:
+      containers:
+      - name: {{ .Values.container.name }}
+        image: {{ .Values.container.image }}:{{ .Values.image.tag }}
+        imagePullPolicy: Always
+        env:
+        - name: kafkaBrokerList
+          value: "{{ .Values.kafka.endpoint }}.{{ .Values.app.namespace }}.svc.cluster.local"
+        - name: kafkaBrokerPort
+          value: "{{ .Values.kafka.port }}"          
+        - name: serviceName
+          value: "{{ .Values.service.name }}"
+        - name: port
+          value: "{{ .Values.service.port }}"                
+        - name: ShortHash
+          value: "{{ .Values.vcs.commit }}"
+        - name: buildNumber
+          value: "1.0.{{ .Values.BUILD_NUMBER }}"
+        - name: postgresContactPoint
+          value: "{{ .Values.postgres.contact.point }}.{{ .Values.postgres.namespace }}.svc.cluster.local"
+        - name: postgresContactPointPort
+          value: "{{ .Values.postgres.contact.port }}"
+        - name: postgresDatabase
+          value: "{{ .Values.postgres.database }}"
+        - name: postgresSchema
+          value: "{{ .Values.postgres.schema }}"     
+        - name: postgresDbUserName
+          value: "{{ .Values.postgres.dbusername }}"
+        - name: postgresDbPassword
+          valueFrom:
+            secretKeyRef:
+              name: cmp-passwords
+              key: "PostgresDataPassword-{{ .Values.environment }}"
+        - name: workingEnv
+          value: "{{ .Values.variables.workingEnv }}"
+        - name: kafkaK8prefix
+          value: "{{ .Values.variables.kafkaK8prefix }}"
+        - name: notificationKafkaTopic
+          value: "{{ .Values.variables.notificationKafkaTopic }}"
+        - name: dbRetryInterval
+          value: "{{ .Values.variables.dbRetryInterval }}"
+        - name: brokersAvailabilityCheckInterval
+          value: "{{ .Values.variables.brokersAvailabilityCheckInterval }}"
+        - name: ProvisioningCEPHAccessKey
+          valueFrom:
+            secretKeyRef:
+              name: cmp-passwords
+              key: "{{ .Values.environment }}-provisioning-ceph-file-accesskey"
+        - name: ProvisioningCEPHSecretKey
+          valueFrom:
+            secretKeyRef:
+              name: cmp-passwords
+              key: "{{ .Values.environment }}-provisioning-ceph-file-secretkey"
+        - name: ProvisioningCEPHBucketName
+          value: "{{ .Values.variables.ProvisioningCEPHBucketName }}" 
+        - name: ProvisioningCEPHPath
+          value: "{{ .Values.variables.ProvisioningCEPHPath }}"
+        - name: ProvisioningCEPHPort
+          value: "{{ .Values.variables.ProvisioningCEPHPort }}" 
+        - name: ProvisioningCEPHServer
+          value: "{{ .Values.variables.ProvisioningCEPHServer }}"
+        - name: ProvisioningCEPHSSL
+          value: "{{ .Values.variables.ProvisioningCEPHSSL }}" 
+        - name: kafkaInternalProvisoningApiTopic
+          value: "{{ .Values.variables.kafkaInternalProvisoningApiTopic }}"
+        - name: kafkaK8Broker
+          value: "{{ .Values.variables.kafkaK8Broker }}"
+        - name: connectInternalToK8Kafka
+          value: "{{ .Values.variables.connectInternalToK8Kafka }}"
+        - name: kafkaGroupId
+          value: "{{ .Values.variables.kafkaGroupId }}"
+        - name: downloadRequestTopic
+          value: "{{ .Values.variables.downloadRequestTopic }}"
+        - name: reportsTopic
+          value: "{{ .Values.variables.reportsTopic }}"
+        - name: GDSUrl
+          value: "{{ .Values.variables.GDSUrl }}"
+        - name: GCSUrl
+          value: "{{ .Values.variables.GCSUrl }}"
+        - name: ParsecUrl
+          value: "{{ .Values.variables.ParsecUrl }}"
+        - name: elasticClusterUrl
+          value: "{{ .Values.variables.elasticClusterUrl }}"
+        - name: ProvisioningK8ElasticUser
+          value: "{{ .Values.variables.ProvisioningK8ElasticUser }}"
+        - name: ProvisioningK8ElasticPassword
+          valueFrom:
+            secretKeyRef:
+              name: cmp-passwords
+              key: "ProvisioningK8ElasticPassword-{{ .Values.environment }}"
+        - name: elasticProvisioningRequestIndex
+          value: "{{ .Values.variables.elasticProvisioningRequestIndex }}"
+        - name: redisHost
+          value: "{{ .Values.variables.redisHost }}"
+        - name: redisPort
+          value: "{{ .Values.variables.redisPort }}"
+        - name: redisUserName
+          value: "{{ .Values.variables.redisUserName }}"
+        - name: redisPassword
+          valueFrom:
+            secretKeyRef:
+              name: cmp-passwords
+              key: "ProvisioningK8RedisPassword-{{ .Values.environment }}"
+        - name: redisCacheKeyPrefix
+          value: "{{ .Values.variables.redisCacheKeyPrefix }}"
+        - name: isRedisCachingEnabledForOrganizationDetails
+          value: "{{ .Values.variables.isRedisCachingEnabledForOrganizationDetails }}"
+        - name: requestDetailsFromProvisioningEnabled
+          value: "{{ .Values.variables.requestDetailsFromProvisioningEnabled }}"
+        {{ if (ne "prod" .Values.variables.workingEnv) }}
+        volumeMounts:
+        - name: kafka-secrets
+          mountPath: "/etc/kafka-secrets"
+        {{ end }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.service.port }}
+        livenessProbe:
+            httpGet:
+              path: /api/v1/status
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 90
+            timeoutSeconds: 30
+        readinessProbe:
+            httpGet:
+              path: /api/v1/status
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 90
+            timeoutSeconds: 30
+        resources:
+          requests:
+            {{ if (eq "prod" .Values.variables.workingEnv)}}
+            cpu: "200m"
+            memory: "400Mi"
+            {{ else }}
+            cpu: "200m"
+            memory: "400Mi"
+            {{ end }}
+          limits:
+            {{ if (eq "prod" .Values.variables.workingEnv)}}
+            cpu: "1500m"
+            memory: "6000Mi"
+            {{ else }}
+            cpu: "800m"
+            memory: "4000Mi"
+            {{ end }}
+      imagePullSecrets:
+      - name: regcred
+      {{ if (ne "prod" .Values.variables.workingEnv) }}
+      volumes:
+        - name: kafka-secrets
+          secret:
+              items:
+              - key: ca.pem
+                path: kafka/ca.pem
+                mode: 0777
+              - key: kafkak8.crt
+                path: kafka/kafkak8.crt
+                mode: 0777
+              - key: kafkak8.key
+                path: kafka/kafkak8.key
+                mode: 0777
+              secretName: provisioning-kafka-{{ .Values.variables.workingEnv }}-secret
+      {{ end }}
+

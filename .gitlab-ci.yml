@@ -1,0 +1,73 @@
+image: harbor.kore.korewireless.com/kore-devops/gitlab-runner-dind:1.0 
+services:
+  - harbor.kore.korewireless.com/kore-devops/gitlab-runner-dind:1.0 
+variables:
+  IMAGE_NAME: ${REG_HOST}/kore-provisioning/provisioning-downloader
+  namespace_edge: "cmp-edge-provisioning"
+  namespace_staging: "cmp-stage-provisioning"
+  namespace_prod: "cmp-prod-provisioning"
+  docker_additional_arg: " "
+  helm_additional_arg: " "
+include:
+  - project: 'devservices/utilities/gitlabci-ci-scripts'
+    file: '/ci-scripts/.edge.yml'
+  - project: 'devservices/utilities/gitlabci-ci-scripts'
+    file: '/ci-scripts/.staging.yml'
+  - project: 'devservices/utilities/gitlabci-ci-scripts'
+    file: '/ci-scripts/.mergerequest.yml'
+  - project: 'devservices/utilities/gitlabci-ci-scripts'
+    file: '/ci-scripts/.production_k8sdeploy.yml'
+  - project: 'devservices/utilities/gitlabci-ci-scripts'
+    file: '/ci-scripts/.production_dockerbuild.yml'
+  - project: 'devservices/test-applications/gitlabci-scripts-testrepo'
+    file: '/ci-scripts/.edgereset.yml'
+  - project: 'devservices/test-applications/gitlabci-scripts-testrepo'
+    file: '/ci-scripts/.stagingreset.yml'
+stages:
+  - edgereset
+  - stagingreset
+  - build
+  - sonar
+  - veracode-scan
+  - deploy
+  - production_k8sdeploy
+  - notification
+install_dependencies:
+  stage: build
+  image: harbor.kore.korewireless.com/docker-base-images/node:16.2.0
+  except:
+    variables:
+      - $reset == "true"
+  script:
+    - npm install 
+    - npm run test
+  coverage: /All\sfiles.*?\s+(\d+.\d+)/
+sonar:
+  stage: sonar
+  image: harbor.kore.korewireless.com/docker-base-images/sonar-scanner:latest
+  needs: ["install_dependencies"]
+  except:
+    variables:
+      - $reset == "true"
+  script:
+    - sonar-scanner
+  allow_failure: true
+  variables:
+    SONAR_PROJECT_BASE_DIR: "${CI_PROJECT_DIR}"
+Veracode Scan:
+  image: harbor.kore.korewireless.com/docker-base-images/openjdk:8-alpine
+  stage: veracode-scan
+  except:
+    variables:
+      - $reset == "true"
+  script:
+    - apk update && apk --no-cache add zip curl unzip  
+    - ls -altr  
+    - zip -r provisioning-downloader.zip lib  
+    - curl -sSL https://download.sourceclear.com/ci.sh | SCAN_DIR="./" sh 
+    - curl -O https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip  
+    - unzip pipeline-scan-LATEST.zip pipeline-scan.jar  
+    - java -jar pipeline-scan.jar    
+      --veracode_api_id "${VERACODE_API_ID}"    
+      --veracode_api_key "${VERACODE_API_KEY}"   
+      --file "provisioning-downloader.zip" || true

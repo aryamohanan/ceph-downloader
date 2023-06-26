@@ -1,0 +1,59 @@
+app:
+  name: provisioning-downloader
+  namespace: cmp-prod-provisioning
+deployment:
+  name: provisioning-downloader
+container:
+  name: provisioning-downloader-container
+  image: harbor.kore.korewireless.com/kore-provisioning/provisioning-downloader
+  tag: latest
+service:
+  name: provisioning-downloader
+  port: 9000
+ingress:
+  name: provisioning-downloader
+  host: provisioning-downloader.prod.traefik.k1.k8.cin.prod.kore.com
+  env: production
+kafka:
+  endpoint: provisioning-broker-service
+  port: 9092
+postgres:
+  name: default
+  database: provisioning-prod-db
+  schema: public
+  namespace: cmp-provisioning-pgs-prod
+  dbusername: postgres
+  username: postgres
+  contact:
+    point: provisioning-prod-db
+    port: 5432
+variables:
+  workingEnv: prod
+  kafkaGroupId: "connectivity-provisioning-downloader-group"
+  connectInternalToK8Kafka: false
+  dbRetryInterval: 1
+  brokersAvailabilityCheckInterval: 1
+  downloadRequestTopic: "connectivity.prod.provisioning.download.requests"
+  reportsTopic: "connectivity.prod.provisioning.reports"
+  ProvisioningCEPHAccessKey: 'G0PZP12B32MUBDL3WJV9'
+  ProvisioningCEPHSecretKey: '4q8WIeLjk0idHz6hCOnw6ODThazvTsz3WZ62rvKt'
+  ProvisioningCEPHBucketName: 'cmp-provisioning'
+  ProvisioningCEPHPath: 'prod_cmp_provisioning'
+  ProvisioningCEPHPort: 443
+  ProvisioningCEPHServer: 's3.ceph.cin.kore.korewireless.com'
+  ProvisioningCEPHSSL: 'true'
+  kafkaInternalProvisoningApiTopic: 'connectivity.prod.provisioning.pendingEnrichment.requests'
+  notificationKafkaTopic: 'connectivity.prod.provisioning.notifications'
+  kafkaK8prefix : ''
+  GDSUrl: 'https://globaldeviceservice.prod.traefik.k1.k8.cin.prod.kore.com'
+  GCSUrl: 'https://globalcustomerservice.prod.traefik.k1.k8.cin.prod.kore.com'
+  ParsecUrl: 'https://parsec.prod.traefik.k1.k8.cin.prod.kore.com'
+  elasticClusterUrl: 'https://connectproelasticsearch.nginx.elk.k8.cin.kore.korewireless.com:443/'
+  ProvisioningK8ElasticUser: 'cmpprovisioning-ci'
+  elasticProvisioningRequestIndex: 'prod-provisioning_requests-search'
+  redisUserName: 'provisioning'
+  redisPort: 6379
+  redisHost: 'cpro-redis-cluster-prod-leader-headless.cpro-redis-cluster-prod'
+  redisCacheKeyPrefix: 'provisioning:prod:'
+  isRedisCachingEnabledForOrganizationDetails: 'true'
+  requestDetailsFromProvisioningEnabled: 'true'

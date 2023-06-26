@@ -1,0 +1,60 @@
+app:
+  name: provisioning-downloader
+  namespace: cmp-edge-provisioning
+deployment:
+  name: provisioning-downloader
+container:
+  name: provisioning-downloader-container
+  image: harbor.kore.korewireless.com/kore-provisioning/provisioning-downloader
+  tag: latest
+service:
+  name: provisioning-downloader
+  port: 9000
+ingress:
+  name: provisioning-downloader
+  host: provisioning-downloader.edge.k1d.k8.cin.kore.korewireless.com
+  env: edge
+kafka:
+  endpoint: provisioning-broker-service
+  port: 9092
+postgres:
+  name: default
+  database: provisioning-edge-db
+  schema: public
+  namespace: cmp-provisioning-pgs-edge
+  dbusername: postgres
+  username: postgres
+  contact:
+    point: provisioning-edge-db
+    port: 5432
+variables:
+  workingEnv: edge
+  kafkaK8Broker: "kafka.cpro.dev.nginx.k1d.k8.cin.kore.korewireless.com:9094"
+  kafkaGroupId: "connectivity-provisioning-downloader-group"
+  connectInternalToK8Kafka: false
+  dbRetryInterval: 1
+  brokersAvailabilityCheckInterval: 1
+  downloadRequestTopic: "connectivity.edge.provisioning.download.requests"
+  reportsTopic: "connectivity.edge.provisioning.reports"
+  ProvisioningCEPHAccessKey: 'G0PZP12B32MUBDL3WJV9'
+  ProvisioningCEPHSecretKey: '4q8WIeLjk0idHz6hCOnw6ODThazvTsz3WZ62rvKt'
+  ProvisioningCEPHBucketName: 'cmp-provisioning'
+  ProvisioningCEPHPath: 'edge_cmp_provisioning'
+  ProvisioningCEPHPort: 443
+  ProvisioningCEPHServer: 's3.ceph.cin.kore.korewireless.com'
+  ProvisioningCEPHSSL: 'true'
+  kafkaInternalProvisoningApiTopic: 'connectivity.edge.provisioning.pendingEnrichment.requests'
+  notificationKafkaTopic: 'connectivity.edge.provisioning.notifications'
+  kafkaK8prefix : 'connectivity.edge.'
+  GDSUrl: 'https://globaldeviceservice.int.k1d.k8.cin.kore.korewireless.com'
+  GCSUrl: 'http://globalcustomerservice.int.k1d.k8.cin.kore.korewireless.com'
+  ParsecUrl: 'http://parsec.edge.k1d.k8.cin.kore.korewireless.com'
+  elasticClusterUrl: 'https://connectproelasticingress-dev.ngxin.k1d.k8.cin.kore.korewireless.com:443/'
+  ProvisioningK8ElasticUser: 'elastic'
+  elasticProvisioningRequestIndex: 'edge-provisioning_requests-search'
+  redisHost: 'cpro-redis-cluster-dev-leader-headless.cpro-redis-cluster-dev'
+  redisPort: 6379
+  redisUserName: 'provisioning'
+  redisCacheKeyPrefix: 'provisioning:edge:'
+  isRedisCachingEnabledForOrganizationDetails: 'true'
+  requestDetailsFromProvisioningEnabled: 'true'

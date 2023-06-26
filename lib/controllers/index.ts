@@ -1,0 +1,1 @@
+export { HealthStatusController } from "./HealthStatusController";

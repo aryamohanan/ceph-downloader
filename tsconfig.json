@@ -1,0 +1,43 @@
+{
+    "compilerOptions": {
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "typeRoots": [
+            "rdkafka.d.ts",          
+            "node_modules/@types"
+        ],
+        "target": "es5",
+        "baseUrl": "./",
+        "paths": {
+            "@controllers*": [
+                "lib/controllers*"
+            ],
+            "@controllers": [
+                "lib/controllers/index"
+            ],
+            "@models*": [
+                "lib/models*"
+            ],
+            "@models": [
+                "lib/models/index"
+            ],
+            "@services*": [
+                "lib/services*"
+            ],
+            "@useCases*": [
+                "lib/useCases*"
+            ],
+            "@config": [
+                "config"
+            ],
+            "@tests*": [
+                "tests*"
+              ]
+        }
+    },
+    "include": [
+        "lib/**/*",
+        "tests/**/*"
+
+    ]
+}

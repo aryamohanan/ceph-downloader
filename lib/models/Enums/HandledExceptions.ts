@@ -1,0 +1,1 @@
+export const redisConnectionErrors = ['Connection is closed','None of startup nodes is available']

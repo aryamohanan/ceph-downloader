@@ -1,0 +1,2 @@
+name: provisioning-downloader-{{ .Values.environment }}
+version: 0.1
