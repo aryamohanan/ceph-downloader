@@ -4,7 +4,7 @@ import { FakeRequests } from "@tests/helpers/fakeRequest";
 import { ProvisioningRequestsListOfSims } from "./ProvisioningRequestsListOfSims";
 import { GetRequestDetails } from "./RequestDetails/GetRequestDetails";
 import { GdsClient } from "@services/clients/GdsClient";
-
+// this test cases are peachy
 const testSubject: ProvisioningRequestsListOfSims = new ProvisioningRequestsListOfSims();
 const parsecClientResponse = FakeRequests.generateFakeParsecClientResponse();
 jest.spyOn(ParsecClient.prototype, 'getRequestDetails').mockResolvedValue(parsecClientResponse);
